@@ -2,7 +2,7 @@
 
 // 
 // TODO
-//
+//  Rafael Mejia
 /// Assignment details and provided code are created and
 /// owned by Adam T Koehler, PhD - Copyright 2023.
 /// University of Illinois Chicago - CS 251 Spring 2023
@@ -136,8 +136,8 @@ public:
     //
     // TODO
     //
-    Rows = new ROW[other.NumRows];  // an array with R ROW structs:
-    NumRows = other.NumRows;
+    Rows = new ROW[other.NumRows];  // an array with the other's ROW structs:
+    NumRows = other.NumRows;  //make sure to copy over the numRows
     for (int r = 0; r < NumRows; ++r)
     {
       Rows[r].Cols = new T[other.Rows[r].NumCols];  
@@ -146,7 +146,7 @@ public:
       // initialize the elements to their values
       for (int c = 0; c < Rows[r].NumCols; ++c)
       {
-        Rows[r].Cols[c] = other.Rows[r].Cols[c];  // default value for type T:
+        Rows[r].Cols[c] = other.Rows[r].Cols[c];  //set this matrix with other's values
       }
     }
   }
@@ -206,13 +206,13 @@ public:
     //
     // TODO:
     //
-      mymatrix<T> temp(1,C);
+      mymatrix<T> temp(1,C);//create one temp matrix of C columns
       for(int i = 0; i < Rows[r].NumCols; i++)
         {
-          temp.Rows[0].Cols[i] = Rows[r].Cols[i];
+          temp.Rows[0].Cols[i] = Rows[r].Cols[i]; //set values
         }
-    Rows[r].Cols = temp.Rows[0].Cols;
-    Rows[r].NumCols = C;
+    Rows[r].Cols = temp.Rows[0].Cols; //set the pointer
+    Rows[r].NumCols = C; //set num cols
   }
 
 
@@ -242,7 +242,7 @@ public:
 
     if(R < NumRows)
       R = NumRows;
-    mymatrix<T> temp(R,C);
+    mymatrix<T> temp(R,C); //create a temp matrix of R rows and C cols
     for(int i = 0; i < NumRows; i++)
     {
       int higher = C;
@@ -250,13 +250,13 @@ public:
       {
         higher = Rows[i].NumCols;
       }
-      temp.growcols(i,higher);
+      temp.growcols(i,higher); //grow cols for jagged cases
       for(int y = 0; y < Rows[i].NumCols; y++)
         {
-          temp(i,y) = this->at(i,y);
+          temp(i,y) = this->at(i,y);  //set values
         }
     }
-    *this = temp;
+    *this = temp; //set pointer
     //
     // TODO:
     //
@@ -329,17 +329,17 @@ public:
   //
   mymatrix<T> operator*(T scalar)
   {
-    mymatrix<T> result(*this);
+    mymatrix<T> result(*this); //use copy constructor to initialize matrix
     for(int r = 0; r < result.NumRows; r++)
     {
        for(int c = 0; c < result.Rows[r].NumCols; c++) 
          {
-           result.Rows[r].Cols[c] *= scalar;
+           result.Rows[r].Cols[c] *= scalar;//multiply all values by scalar
          }
     }
   
 
-    return result;
+    return result;//return new matrix
   }
 
 
@@ -359,7 +359,6 @@ public:
   //
   mymatrix<T> operator*(const mymatrix<T>& other)
   {
-    mymatrix<T> result;
 
     //
     // both matrices must be rectangular for this to work:
@@ -369,10 +368,36 @@ public:
     // TODO
     //
     // if (this matrix is not rectangular)
-    //   throw runtime_error("mymatrix::*: this not rectangular");
+
+    //check if the current matrix is rectangular
+    int count = Rows[0].NumCols;
+    for(int i = 0; i < NumRows; i++)
+      {
+        for(int j = 0; j < Rows[i].NumCols; j++)
+          {
+            if(Rows[i].NumCols != count)
+            {
+              throw runtime_error("mymatrix::*: this not rectangular");
+            }
+          }
+      }
+
+    //check if the parameter matrix is rectangular
+    count = other.Rows[0].NumCols;
+       for(int i = 0; i < other.NumRows; i++)
+      {
+        for(int j = 0; j < other.Rows[i].NumCols; j++)
+          {
+            if(other.Rows[i].NumCols != count)
+            {
+              throw runtime_error("mymatrix::*: other not rectangular");
+            }
+          }
+      }
+    
     // //
     // if (other matrix is not rectangular)
-    //   throw runtime_error("mymatrix::*: other not rectangular");
+    //   
 
     //
     // Okay, both matrices are rectangular.  Can we multiply?  Only
@@ -387,16 +412,42 @@ public:
     //
     // if (this matrix's # of columns != other matrix's # of rows)
     //   throw runtime_error("mymatrix::*: size mismatch");
-
+        if(Rows[0].NumCols != other.NumRows)
+        {
+           throw runtime_error("mymatrix::*: size mismatch"); 
+        }
     //
     // Okay, we can multiply:
     //
 
     //
     // TODO
-    //
+    /*
+    create a matrix that is the result of the multiplication
+    multiply the this matrix by other
+    example:
 
-    return result;
+    this        other                                    result
+  |1 2 3|      |1 2|    1*1 + 2*2 + 3*3  1*2 + 2*1 + 3*4 |14 16| 
+  |3 2 1|      |2 1|    3*1 + 2*2 + 1*3  3*2 + 2*1 + 1*4 |10 12|
+               |3 4|
+multiply each index of the row by the corresponding column of the other matrix 
+
+
+    */
+    //
+    mymatrix<T> result(NumRows,other.Rows[0].NumCols); //set the new matrix to be the curr matrix's num rows and the other matrix's num cols;
+  for (int x = 0; x < NumRows; x++)//go thru curr rows
+  {
+    for (int y = 0; y < other.Rows[x].NumCols; y++)//go thru the others cols
+    {
+      for (int i = 0; i < other.NumRows; i++)
+      {
+        result(x, y) += Rows[x].Cols[i] * other.Rows[i].Cols[y];
+      }
+    }
+  }
+    return result;//return  matrix
   }
 
 
