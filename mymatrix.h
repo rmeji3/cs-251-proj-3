@@ -205,7 +205,10 @@ public:
 
     //
     // TODO:
-    //
+    //if
+      // T* tempCols = new T[C]
+    if(C > Rows[r].NumCols)
+    {
       mymatrix<T> temp(1,C);//create one temp matrix of C columns
       for(int i = 0; i < Rows[r].NumCols; i++)
         {
@@ -213,6 +216,7 @@ public:
         }
     Rows[r].Cols = temp.Rows[0].Cols; //set the pointer
     Rows[r].NumCols = C; //set num cols
+    }
   }
 
 
@@ -455,7 +459,16 @@ multiply each index of the row by the corresponding column of the other matrix
   // _output
   //
   // Outputs the contents of the matrix; for debugging purposes.
-  //
+  void fill(const int val)
+  {
+    for(int r = 0; r < NumRows; r++)
+    {
+      for(int c = 0; c < Rows[r].NumCols; c++)
+      {
+        Rows[r].Cols[c] = val;    
+      }
+    }
+  }
   void _output()
   {
     for (int r = 0; r < this->NumRows; ++r)

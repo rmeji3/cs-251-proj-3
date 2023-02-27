@@ -129,6 +129,14 @@ bool testNumColsAfterMultipleGrowCols()
   }
   return true;
 }
+bool testShrinkCols()
+{
+  mymatrix<int>m;
+  m.growcols(0,1);
+  if(m.numcols(0) != 4)
+    return false;
+  return true;
+}
 bool testSingleGrow()
 {
   mymatrix<bool>m(2,2);
@@ -575,8 +583,148 @@ bool testScalarJagged()
   
   return true;
 }
-bool testMatrixMult()
+bool testMatrixMultBasic()
 {
+  mymatrix<int> m1(5,5);
+  m1.fill(5);
+
+  mymatrix<int> m2(5,3);
+  m2.fill(6);
+
+  mymatrix<int> result = m1 * m2;
+  for(int r = 0; r < result.numrows(); r++)
+  {
+    for(int c = 0; c < result.numcols(r); c++)
+    {
+      if(result(r,c) != 150)
+        return false;
+    }
+  }
+  return true;
+}
+bool testMatrixMultDiff()
+{
+  mymatrix<int> m1(2,3);
+  m1.at(0,0) = 1;
+  m1.at(0,1) = 2;
+  m1.at(0,2) = 3;
+  
+  m1.at(1,0) = 3;
+  m1.at(1,1) = 2;
+  m1.at(1,2) = 1;
+  mymatrix<int> m2(3,2);
+  m2.at(0,0) = 1;
+  m2.at(0,1) = 2;
+  
+  m2.at(1,0) = 2;
+  m2.at(1,1) = 1;
+
+  m2.at(2,0) = 3;
+  m2.at(2,1) = 4;
+
+  mymatrix<int>result = m1*m2;
+  if(result.at(0,0) != 14)
+    return false;
+  if(result.at(0,1) != 16)
+    return false;
+  if(result.at(1,0) != 10)
+    return false;
+  if(result.at(1,1) != 12)
+    return false;
+  
+  return true;
+  
+}
+bool testMultiple()
+{
+  mymatrix<int>m1(1,1);
+  m1.grow(5,1);
+  m1.fill(5);
+  for(int r = 0; r < m1.numrows(); r++)
+  {
+    m1.growcols(r,5);
+    if(m1.numcols(r) != 5)
+      return false;
+  }
+  if(m1.numrows() != 5)
+    return false;
+  m1.fill(1);
+  mymatrix<int> mcopy(m1);
+  for(int r = 0; r < mcopy.numrows(); r++)
+  {
+    mcopy.growcols(r,5);
+    if(mcopy.numcols(r) != 5)
+      return false;
+    for(int c = 0; c < mcopy.numcols(r); c++)
+    {
+      if(mcopy(r,c) != 1)
+        return false;
+    }
+  }
+  if(mcopy.numrows() != 5)
+    return false;
+  m1 = m1 * mcopy;
+  for(int r = 0; r < m1.numrows(); r++)
+  {
+    for(int c = 0; c < m1.numcols(r); c++)
+      {
+        if(m1(r,c) != 5)
+          return false;
+      }
+  }
+  mymatrix<int> m2;
+  m2.growcols(0,6);
+  if(m2.numcols(0) != 6)
+    return false;
+  for(int r = 1; r < m2.numrows(); r++)
+  {
+    if(m2.numcols(r) != 4)
+      return false;
+  }
+  m2.grow(5,6);
+  m2.fill(6);
+  for(int r = 0; r < m2.numrows(); r++)
+  {
+    if(m2.numcols(r) != 6)
+      return false;
+  }
+  m2 = m2 * -1;
+  for(int r = 0; r < m2.numrows(); r++)
+  {
+    for(int c = 0; c < m2.numcols(r); c++)
+      {
+        if(m2(r,c) != -6)
+          return false;
+      }
+  }
+  m2 = m2 * -1;
+  for(int r = 0; r < m2.numrows(); r++)
+  {
+    for(int c = 0; c < m2.numcols(r); c++)
+      {
+        if(m2(r,c) != 6)
+          return false;
+      }
+  }
+  mymatrix<int>result = m1 * m2;
+    for(int r = 0; r < result.numrows(); r++)
+  {
+    for(int c = 0; c < result.numcols(r); c++)
+      {
+        if(result(r,c) != 150)
+          return false;
+      }
+  }
+  result.grow(1,1);
+  if(result.numrows() == 1 && result.numcols(0) == 1)
+    return false;
+  result.grow(600,600);
+  if(result.numrows() != 600)
+    return false;
+  result.growcols(0,10);
+  if(result.numcols(0) != 600)
+    return false;
+  return true;
   
 }
 int main() {
@@ -597,6 +745,7 @@ int fail = 0;
 (testNumColsJagged()) ? (pass++,cout<<"") : (fail++, cout << "Failed test: testNumColsJagged" << endl);
 (testLargeNumColsJagged()) ? (pass++,cout<<"") : (fail++, cout << "Failed test: testLargeNumColsJagged" << endl);
 (testNumColsAfterMultipleGrowCols()) ? (pass++,cout<<"") : (fail++, cout << "Failed test: testNumColsAfterMultipleGrowCols" << endl);
+(testShrinkCols()) ? (pass++,cout<<"") : (fail++, cout << "Failed test: testShrinkCols" << endl);
 (testSingleGrow()) ? (pass++,cout<<"") : (fail++, cout << "Failed test: testSingleGrow" << endl);
 (testmutipleGrow()) ? (pass++,cout<<"") : (fail++, cout << "Failed test: testmutipleGrow" << endl);
 (testJaggedGrow()) ? (pass++,cout<<"") : (fail++, cout << "Failed test: testJaggedGrow" << endl);
@@ -606,7 +755,9 @@ int fail = 0;
 (testScalarNegatives())? (pass++,cout<<"") : (fail++, cout << "Failed test: testScalarNegatives" << endl);
 (testScalarDoubles())? (pass++,cout<<"") : (fail++, cout << "Failed test: testScalarDoubles" << endl);
 (testScalarJagged())? (pass++,cout<<"") : (fail++, cout << "Failed test: testScalarJagged" << endl);
-(testMatrixMult())? (pass++,cout<<"") : (fail++, cout << "Failed test: testMatrixMult" << endl);
+(testMatrixMultBasic())? (pass++,cout<<"") : (fail++, cout << "Failed test: testMatrixMultBasic" << endl);
+(testMatrixMultDiff())? (pass++,cout<<"") : (fail++, cout << "Failed test: testMatrixMultDiff" << endl);
+(testMultiple())? (pass++,cout<<"") : (fail++, cout << "Failed test: testMultiple" << endl);
 cout << "Tests passed: " << pass << endl;
 cout << "Tests failed: " << fail << endl;
 }
